@@ -27,5 +27,5 @@ from datetime import date
 writer('churn_log', '************************PROGRAM STARTED*************************************')
 appender('churn_log', 'Import done')
 
-print('Ray')
+print('Rayy')
 
