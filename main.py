@@ -34,9 +34,28 @@ def read_sql_query_dwh(script):
     conn.close()
     return dfs
 
-rates = read_sql_query_dwh('''select id, FromCurrencyId,ToCurrencyId,FromCurrencyName currency, ToCurrencyName, buy, sell, BaseRate,DateCreated 
-        from confluence_dbo.NewRates where ToCurrencyId = 4 order by ToCurrencyId asc''')
-
 # Connection to the DWH
-print(rates)
+nuban = read_sql_query_dwh('''
+
+select * from (
+select  concat(concat(firstname,'  '),LastName) customer_name, cf.Nuban, 
+trunc(dategenerated) DateCreated,
+sum(case when tw.DebitCreditIndicator ='D' then transactionamount  else 0 end)Total_Debit,
+sum(case when tw.DebitCreditIndicator ='C' then transactionamount else 0 end)Total_Credit,
+(select currentbalance from custom.nuban where wemaaccount = cf.nuban) CurrentBal
+from confluence_dbo.ConfluenceNumbers cf 
+join confluence_dbo.users us on cf.customerid = us.customerid
+join confluence_dbo.customers c on c.id = us.customerid
+join confluence_dbo.Wallets w on us.id = w.userid
+join confluence_dbo.TodayWalletTransactions tw on tw.walletid = w.id
+where nuban in (select wemaaccount from custom.nuban)
+group by trunc(dategenerated),cf.Nuban,concat(concat(firstname,'  '),LastName))
+
+''')
+
+print(nuban.head(6))
+
+print(nuban.info())
+
+
 
